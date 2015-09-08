@@ -13,7 +13,26 @@ var Actions = Reflux.createActions([
   "rowClick"
 ]);
 
+var _config = {};
+var ConfigStore = Reflux.createStore({
+  init: function(){
+    this.listenTo(Actions.init, this.onInit);
+  },
+  onInit: function(){
+    var self = this;
+    jQuery.get("index.php/getConfig", function(data){
+      _config = JSON.parse(data);
+      console.log(_config);
+      self.trigger(data);
+    })
+  },
+  getConfig: function(){
+    return _config;
+  }
+})
+
 var _tableData;
+
 var DataStore = Reflux.createStore({
   init: function(){
     this.listenTo(Actions.rowClick, this.onRowClick);
@@ -21,35 +40,27 @@ var DataStore = Reflux.createStore({
   getData: function(){
     return _tableData;
   },
-  onRowClick: function(config, params){
+  onRowClick: function(url){
     var self = this;
-    //Load Data using config
-    var url = config.dataUrl;
-    console.log(config["params"])
-    if(params){
-
-      console.log(params)
-      console.log(params[config["params"]])
-      url = url+params[config.params]
-    }
     console.log(url)
+
     jQuery.get(url, function(data){
       console.log(data)
-      _tableData = data;
+      _tableData = JSON.parse(data);
       self.trigger(data);
     })
     //Trigger update
   }
 })
 
-var _config = {}
 
 var init = function(){
-  jQuery.get("http://localhost:3001/manifest", function(data){
-    _config = data;
-    Actions.rowClick(data.path[0])
-
-  })
+  //jQuery.get("http://localhost:3001/manifest", function(data){
+    //_config = data;
+    Actions.init();
+    Actions.rowClick("index.php/getData?pathState=0");
+    console.log(ConfigStore.getConfig());
+  //})
 }
 
 init();
@@ -83,17 +94,26 @@ var InitTable = React.createClass({
     var self = this;
     self.unsubscribe = DataStore.listen(self.onData)
 
-    /*
-    jQuery.get("http://localhost:3001/collections", function(data){
-      console.log(data);
-      self.setState({data: data});
-    })
-    */
+
   },
 
   rowGetter: function(i){
     //console.log(this.state.data[i])
     return (this.state.data[i]);
+  },
+  nextPath: function(event, index){
+    var self  = this;
+    var pathState  = self.state.pathState;
+    var config = ConfigStore.getConfig();
+    self.setState({data: null});
+
+    pathState++;
+    params = self.state.data[index];
+
+    var reqParams = config[pathState]["params"];
+
+    Actions.rowClick("index.php/getData?pathState="+ pathState+ "&" + reqParams + "="+ params[reqParams]);
+    this.setState({pathState: pathState});
   },
   render: function(){
     var self = this;
@@ -125,22 +145,10 @@ var InitTable = React.createClass({
         width={WIDTH}
         height={400}
         headerHeight={50}
-        onRowClick={function(event, index){
-            //console.log(self.state.data[index])
-            var pathState  = self.state.pathState;
-            pathState++;
-            params = self.state.data[index]
-            Actions.rowClick(_config.path[pathState], params)
-            self.setState({pathState: pathState});
-            /*
-          jQuery.get("http://localhost:3001/patients/"+self.state.data[index].Collection, function(data){
-            //console.log(data);
-            self.setState({data: data});
-          })
-          */
-        }}
-      >
-        {Columns}
+        onRowClick={self.nextPath}>
+
+
+      {Columns}
       </Table>
     )
     } else {
