@@ -95,7 +95,12 @@ $app->delete(
     }
 );
 
-
+$app->get(
+  '/getConfig',
+  function () use($config_json, $app) {
+    echo json_encode($config_json["path"]);
+  }
+);
 
 $app->get(
   '/getData',
@@ -108,18 +113,23 @@ $app->get(
     $dataUrl = $config_json["path"][$pathState]["dataUrl"];
 
     $apiKey = $config_json["apiKey"];
+
+
+    $dataUrl = $dataUrl . "?api_key=".$apiKey;
+
+
+    //Add parameters to dataUrl
     if( isset($config_json["path"][$pathState]["params"]) ){
       $params = $config_json["path"][$pathState]["params"];
       $reqParams = urldecode($app->request->params($params));
 
-      $dataUrl = $dataUrl . "?" . $params . "=" . urlencode($reqParams);
+      $dataUrl = $dataUrl . "&" . $params . "=" . urlencode($reqParams);
     }
-    //$params = $config_json["params"];
 
-    $dataUrl = $dataUrl . "&api_key=".$apiKey;
-  
+
+
+    //Make the remote request
     $cSession = curl_init();
-
     try {
         $ch = curl_init();
 
