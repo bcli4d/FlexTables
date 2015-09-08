@@ -1,0 +1,12 @@
+#whoosh{
+  padding: 40px;
+}
+
+#whooshTable{
+  margin-top: 20px;
+}
+
+.fixedDataTableRowLayout_rowWrapper:hover .public_fixedDataTableCell_main {
+background-color: #ddd;
+cursor: pointer;
+}
