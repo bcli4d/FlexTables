@@ -8,28 +8,10 @@ var jQuery = require('jquery');
 var ColumnGroup = FixedDataTable.ColumnGroup;
 var Reflux = require('reflux')
 
-var Actions = Reflux.createActions([
-  "init",
-  "rowClick"
-]);
+var Actions = require('./actions/Actions.jsx')
 
-var _config = {};
-var ConfigStore = Reflux.createStore({
-  init: function(){
-    this.listenTo(Actions.init, this.onInit);
-  },
-  onInit: function(){
-    var self = this;
-    jQuery.get("index.php/getConfig", function(data){
-      _config = JSON.parse(data);
-      console.log(_config);
-      self.trigger(data);
-    })
-  },
-  getConfig: function(){
-    return _config;
-  }
-})
+var ConfigStore = require('./stores/ConfigStore.jsx');
+
 
 var _tableData;
 
