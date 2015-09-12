@@ -1,5 +1,5 @@
 var Reflux = require('reflux');
-
+var jQuery = require('jquery');
 var Actions = require('../actions/Actions.jsx');
 
 var _config = {};

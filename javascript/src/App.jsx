@@ -36,12 +36,17 @@ var TableColumns = React.createClass({
     )
 
   }
-})
+});
+
+var SortTypes = {
+  ASC: 'ASC',
+  DESC: 'DESC',
+};
 
 var InitTable = React.createClass({
   listenables: Actions,
   getInitialState: function(){
-    return {pathState: 0};
+    return {pathState: 0, sortDir: null, sortBy: null};
   },
   onData: function(){
     var self = this;
@@ -75,8 +80,55 @@ var InitTable = React.createClass({
     Actions.rowClick("index.php/getData?pathState="+ pathState+ "&" + reqParams + "="+ params[reqParams]);
     this.setState({pathState: pathState});
   },
-  render: function(){
+  _sortRowsBy: function(cellDataKey){
     var self = this;
+    var data = self.state.data;
+    var sortBy = cellDataKey;
+    if(sortBy == this.state.sortBy){
+        sortDir = this.state.sortDir === SortTypes.ASC ? SortTypes.DESC : SortTypes.ASC;
+        
+    } else {
+        sortDir = SortTypes.DESC;
+    }
+
+
+    data.sort(function(a,b){
+        var sortVal = 0;
+        if(a[sortBy] > b[sortBy]){
+            sortVal = 1;
+        }
+        if(a[sortBy] < b[sortBy]){
+            sortVal = -1;
+        }
+    
+        if(sortDir === SortTypes.DESC){
+            sortVal =  sortVal * -1;
+        }
+
+
+        return sortVal;
+
+    });
+    this.setState({data: data, sortBy: sortBy, sortDir: sortDir});
+  },
+  renderHeader: function(label, cellDataKey){
+    console.log(label);
+    return(
+        <a onClick={this._sortRowsBy.bind(null,cellDataKey)}>{label}</a>
+    );
+  },
+  render: function(){
+
+
+    var self = this;
+  
+    var sortDirArrow = '';
+    
+    if (this.state.sortDir !== null){
+      sortDirArrow = this.state.sortDir === SortTypes.DESC ? ' ↓' : ' ↑';
+    }
+
+  
     if(self.state.data){
 
       var data = self.state.data;
@@ -86,14 +138,15 @@ var InitTable = React.createClass({
       }
       var nColumns = keys.length;
       var Columns = keys.map(function(column){
+        //console.log(self.renderHeader);
         return(
 
 
           <Column
-            label={column}
+            label={column + " "+(self.state.sortBy === column ? sortDirArrow : '')}
             width={WIDTH/keys.length}
-            dataKey={column}
-
+            dataKey={column }
+            headerRenderer={self.renderHeader}      
           />
         )
       });
