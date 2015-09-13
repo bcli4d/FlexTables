@@ -87,7 +87,7 @@ var InitTable = React.createClass({
   nextPath: function(event, index){
     var self  = this;
     var pathState  = self.state.pathState;
-    var config = ConfigStore.getConfig();
+    var config = ConfigStore.getConfig()["path"];
     self.setState({data: null});
 
     pathState++;
@@ -158,7 +158,7 @@ var InitTable = React.createClass({
 
 
     var self = this;
-  
+    var config = ConfigStore.getConfig();  
     var sortDirArrow = '';
     
     if (this.state.sortDir !== null){
@@ -186,11 +186,15 @@ var InitTable = React.createClass({
           />
         )
       });
+   
       return(
       <div>
+        <h1>{config.title}</h1>
+        <h4>{config["path"][self.state.pathState]["name"]}</h4>   
         <div onClick={self._onBack} className="backLink">  
           <BackButton pathState={self.state.pathState} />
         </div>
+
         <Table
         rowHeight={50}
         rowGetter={self.rowGetter}
@@ -213,10 +217,12 @@ var InitTable = React.createClass({
 });
 
 var App = React.createClass({
+  
   render: function(){
+    var config = ConfigStore.getConfig();
+    console.log(config);
     return(
       <div id="whoosh">
-        <h1>Whoosh Tables</h1>
         <div id="whooshTable">
           <InitTable/>
         </div>
