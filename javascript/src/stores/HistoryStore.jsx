@@ -1,24 +1,25 @@
 var Reflux = require('reflux');
 var Actions = require('../actions/Actions.jsx');
 var jQuery = require('jquery');
-var _tableData;
+
+
+var _history = [""];
 
 var DataStore = Reflux.createStore({
   init: function(){
     this.listenTo(Actions.rowClick, this.onRowClick);
   },
-  getData: function(){
-    return _tableData;
+  getHistory: function(){
+    return _history;
   },
-  onRowClick: function(url){
+  popRecent: function(){
+    return (_history.splice(_history.length -2, 2))[0];
+    //return _history[_history.length -2];
+  },
+  onRowClick: function(url, params){
     var self = this;
-//    console.log(url)
-
-    jQuery.get(url, function(data){
-        //console.log(data)
-      _tableData = JSON.parse(data);
-      self.trigger(data);
-    })
+    console.log(params);
+    _history.push(params);
     //Trigger update
   }
 })

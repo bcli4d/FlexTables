@@ -12,14 +12,14 @@ var Actions = require('./actions/Actions.jsx')
 
 var ConfigStore = require('./stores/ConfigStore.jsx');
 var DataStore = require('./stores/DataStore.jsx');
-
+var HistoryStore = require('./stores/HistoryStore.jsx');
 
 var init = function(){
   //jQuery.get("http://localhost:3001/manifest", function(data){
     //_config = data;
     Actions.init();
     Actions.rowClick("index.php/getData?pathState=0");
-    console.log(ConfigStore.getConfig());
+    //console.log(ConfigStore.getConfig());
   //})
 }
 
@@ -38,10 +38,28 @@ var TableColumns = React.createClass({
   }
 });
 
+
+
+var BackButton = React.createClass({
+  render: function(){
+    if(this.props.pathState){
+        return(
+          <div>Back</div>
+        )
+    } else {
+      return(
+        <div />
+      )
+    }
+  }
+});
+
 var SortTypes = {
   ASC: 'ASC',
   DESC: 'DESC',
 };
+
+
 
 var InitTable = React.createClass({
   listenables: Actions,
@@ -51,7 +69,7 @@ var InitTable = React.createClass({
   onData: function(){
     var self = this;
     var data = DataStore.getData();
-    console.log(data)
+    //console.log(data)
     if(data)
       self.setState({data: data});
   },
@@ -77,7 +95,22 @@ var InitTable = React.createClass({
 
     var reqParams = config[pathState]["params"];
 
-    Actions.rowClick("index.php/getData?pathState="+ pathState+ "&" + reqParams + "="+ params[reqParams]);
+    Actions.rowClick("index.php/getData?pathState="+ pathState+ "&" + reqParams + "="+ params[reqParams], params);
+    this.setState({pathState: pathState});
+  },
+  _onBack: function(){
+    var params = (HistoryStore.popRecent());
+    var pathState = this.state.pathState -1;
+    var urlparams = "";
+    if(params){
+      for(var i in params){
+        urlparams = "&" + i + "=" + params[i];
+      }
+    }
+    console.log("index.php/getData?pathState="+ pathState + urlparams);
+
+    Actions.rowClick("index.php/getData?pathState="+ pathState + urlparams);
+
     this.setState({pathState: pathState});
   },
   _sortRowsBy: function(cellDataKey){
@@ -111,12 +144,16 @@ var InitTable = React.createClass({
     });
     this.setState({data: data, sortBy: sortBy, sortDir: sortDir});
   },
+   
   renderHeader: function(label, cellDataKey){
     console.log(label);
     return(
+        <div>
         <a onClick={this._sortRowsBy.bind(null,cellDataKey)}>{label}</a>
+        </div>
     );
   },
+
   render: function(){
 
 
@@ -127,6 +164,7 @@ var InitTable = React.createClass({
     if (this.state.sortDir !== null){
       sortDirArrow = this.state.sortDir === SortTypes.DESC ? ' ↓' : ' ↑';
     }
+    
 
   
     if(self.state.data){
@@ -140,8 +178,6 @@ var InitTable = React.createClass({
       var Columns = keys.map(function(column){
         //console.log(self.renderHeader);
         return(
-
-
           <Column
             label={column + " "+(self.state.sortBy === column ? sortDirArrow : '')}
             width={WIDTH/keys.length}
@@ -151,7 +187,11 @@ var InitTable = React.createClass({
         )
       });
       return(
-      <Table
+      <div>
+        <div onClick={self._onBack} className="backLink">  
+          <BackButton pathState={self.state.pathState} />
+        </div>
+        <Table
         rowHeight={50}
         rowGetter={self.rowGetter}
         rowsCount={self.state.data.length}
@@ -159,10 +199,9 @@ var InitTable = React.createClass({
         height={400}
         headerHeight={50}
         onRowClick={self.nextPath}>
-
-
-      {Columns}
-      </Table>
+          {Columns}
+        </Table>
+      </div>
     )
     } else {
       return(
