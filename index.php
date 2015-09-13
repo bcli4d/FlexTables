@@ -98,7 +98,11 @@ $app->delete(
 $app->get(
   '/getConfig',
   function () use($config_json, $app) {
-    echo json_encode($config_json["path"]);
+    $config_safe = array(
+      "title" => $config_json["title"],
+      "path" => $config_json["path"]
+    );
+    echo json_encode($config_safe);
   }
 );
 
