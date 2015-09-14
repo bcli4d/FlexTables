@@ -14,13 +14,19 @@ var ConfigStore = require('./stores/ConfigStore.jsx');
 var DataStore = require('./stores/DataStore.jsx');
 var HistoryStore = require('./stores/HistoryStore.jsx');
 
+
+
+var PAGEID=0;
+var PERPAGE=10;
+
+
+
 var init = function(){
-  //jQuery.get("http://localhost:3001/manifest", function(data){
-    //_config = data;
     Actions.init();
-    Actions.rowClick("index.php/getData?pathState=0");
-    //console.log(ConfigStore.getConfig());
-  //})
+    var pagingParams = "&perPage="+PERPAGE +"&pageId="+PAGEID;
+    var url = "index.php/getData?pathState=0"+pagingParams;
+    console.log(url);
+    Actions.rowClick(url);
 }
 
 init();
@@ -28,17 +34,32 @@ init();
 var WIDTH = 1200;
 
 
-var TableColumns = React.createClass({
+var PaginationPanel = React.createClass({
   render: function(){
+    var self = this;
+    var pageId = this.props.pagingData.pageId;
+    var endPageId = this.props.pagingData.endPageId;
+    var pagesArray = Array.apply(null, Array(endPageId)).map(Number.prototype.valueOf,0);
+    var Pages = pagesArray.map(function(o,i){
+      var className="pageNumber";
+      if(pageId == i){
+        className += " activePage";
 
+      }
+      return(
+        <div className={className} onClick={function(){
+          self.props.handlePaging(i);
+        }}>{i}</div>
+      )
+    });
+    for(var i=0; i<endPageId; i++){
+           
+    }
     return(
-      {Columns}
-    )
-
+      <div>{Pages}</div>
+    );
   }
 });
-
-
 
 var BackButton = React.createClass({
   render: function(){
@@ -58,13 +79,10 @@ var SortTypes = {
   ASC: 'ASC',
   DESC: 'DESC',
 };
-
-
-
 var InitTable = React.createClass({
   listenables: Actions,
   getInitialState: function(){
-    return {pathState: 0, sortDir: null, sortBy: null};
+    return {pathState: 0, sortDir: null, sortBy: null, pageId:0};
   },
   onData: function(){
     var self = this;
@@ -79,23 +97,47 @@ var InitTable = React.createClass({
 
 
   },
-
+  getPage: function(i, index){
+    var self  = this;
+    var pathState  = self.state.pathState;
+    var config = ConfigStore.getConfig()["path"];
+    self.setState({data: null});
+    params = "";
+    var history = HistoryStore.getHistory();
+    console.log(history);
+   
+    params = history[history.length - 1];
+    if(!params){
+      params = "";
+    }
+    var pagingParams = "&perPage="+PERPAGE +"&pageId="+i;
+  
+    var reqParams = config[pathState]["params"];
+    
+    Actions.rowClick("index.php/getData?pathState="+ pathState+ "&" + reqParams + "="+ params[reqParams]+pagingParams, params);
+    //self.setState({pageId: i});
+  },
   rowGetter: function(i){
     //console.log(this.state.data[i])
     return (this.state.data[i]);
   },
   nextPath: function(event, index){
-    var self  = this;
+    console.log(event);
+    console.log(index);
+    var self  = this; 
+    self.setState({data: null, pageId:0});
+
     var pathState  = self.state.pathState;
     var config = ConfigStore.getConfig()["path"];
-    self.setState({data: null});
 
     pathState++;
     params = self.state.data[index];
-
+    
+    var pagingParams = "&perPage="+PERPAGE +"&pageId="+0;
+  
     var reqParams = config[pathState]["params"];
-
-    Actions.rowClick("index.php/getData?pathState="+ pathState+ "&" + reqParams + "="+ params[reqParams], params);
+    console.log("..........");
+    Actions.rowClick("index.php/getData?pathState="+ pathState+ "&" + reqParams + "="+ params[reqParams]+pagingParams, params);
     this.setState({pathState: pathState});
   },
   _onBack: function(){
@@ -107,8 +149,6 @@ var InitTable = React.createClass({
         urlparams = "&" + i + "=" + params[i];
       }
     }
-    console.log("index.php/getData?pathState="+ pathState + urlparams);
-
     Actions.rowClick("index.php/getData?pathState="+ pathState + urlparams);
 
     this.setState({pathState: pathState});
@@ -166,9 +206,10 @@ var InitTable = React.createClass({
     }
     
 
-  
+     
     if(self.state.data){
-
+      var pagingData = DataStore.getPagingData();
+      console.log(pagingData);
       var data = self.state.data;
       var keys = [];
       for(var i in data[0]){
@@ -205,6 +246,7 @@ var InitTable = React.createClass({
         onRowClick={self.nextPath}>
           {Columns}
         </Table>
+        <PaginationPanel handlePaging={self.getPage.bind(this)}pagingData={pagingData} />
       </div>
     )
     } else {
