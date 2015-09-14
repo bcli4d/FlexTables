@@ -46,7 +46,7 @@ $app->get(
     <html>
         <head>
             <meta charset="utf-8"/>
-            <title>Slim Framework for PHP 5</title>
+            <title>Whoosh</title>
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/css/bootstrap.css"/>
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fixed-data-table/0.4.6/fixed-data-table.css" />
             <link rel="stylesheet" href="javascript/public/style.css" />
@@ -118,19 +118,15 @@ $app->get(
 
     $apiKey = $config_json["apiKey"];
 
-
+    $pageId = (int)$app->request->params("pageId") ?: 0;
+    $perPage = (int)$app->request->params("perPage") ?: 10;
     $dataUrl = $dataUrl . "?api_key=".$apiKey;
-
-
     //Add parameters to dataUrl
     if( isset($config_json["path"][$pathState]["params"]) ){
       $params = $config_json["path"][$pathState]["params"];
       $reqParams = urldecode($app->request->params($params));
-
       $dataUrl = $dataUrl . "&" . $params . "=" . urlencode($reqParams);
     }
-
-
 
     //Make the remote request
     $cSession = curl_init();
@@ -159,8 +155,20 @@ $app->get(
             E_USER_ERROR);
 
     }
-
-    echo ($content);
+    $contentLen = count(json_decode($content));
+    //echo $contentLen;
+    $end = (int)intval($contentLen/$perPage);
+    $data = json_encode(array_slice(json_decode($content), $pageId*$perPage, $perPage));
+    
+    $payload = array(
+      "pageId"  => $pageId,
+      "perPage" => $perPage,
+      "endPageId"     => $end,
+      "data"    => $data
+    );
+    echo json_encode($payload);
+   
+    //echo $data;
   }
 );
 
