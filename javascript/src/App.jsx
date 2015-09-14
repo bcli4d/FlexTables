@@ -17,7 +17,7 @@ var HistoryStore = require('./stores/HistoryStore.jsx');
 
 
 var PAGEID=0;
-var PERPAGE=10;
+var PERPAGE=100;
 
 
 
@@ -122,8 +122,7 @@ var InitTable = React.createClass({
     return (this.state.data[i]);
   },
   nextPath: function(event, index){
-    console.log(event);
-    console.log(index);
+
     var self  = this; 
     self.setState({data: null, pageId:0});
 
@@ -132,12 +131,21 @@ var InitTable = React.createClass({
 
     pathState++;
     params = self.state.data[index];
-    
+    var row = self.state.data[index];
     var pagingParams = "&perPage="+PERPAGE +"&pageId="+0;
   
     var reqParams = config[pathState]["params"];
-    console.log("..........");
-    Actions.rowClick("index.php/getData?pathState="+ pathState+ "&" + reqParams + "="+ params[reqParams]+pagingParams, params);
+    var urlParams = "";    
+    for(var i in reqParams){
+      var param = reqParams[i];
+      var urlParam = "&" + param+"="+row[param];
+      urlParams+=urlParam;
+    }
+    
+    //console.log("..........");
+    var url = "index.php/getData?pathState="+ pathState + urlParams + pagingParams;
+    console.log(url);
+    Actions.rowClick(url, params);
     this.setState({pathState: pathState});
   },
   _onBack: function(){
@@ -186,7 +194,7 @@ var InitTable = React.createClass({
   },
    
   renderHeader: function(label, cellDataKey){
-    console.log(label);
+    //console.log(label);
     return(
         <div>
         <a onClick={this._sortRowsBy.bind(null,cellDataKey)}>{label}</a>
@@ -209,7 +217,7 @@ var InitTable = React.createClass({
      
     if(self.state.data){
       var pagingData = DataStore.getPagingData();
-      console.log(pagingData);
+      //console.log(pagingData);
       var data = self.state.data;
       var keys = [];
       for(var i in data[0]){
@@ -221,8 +229,11 @@ var InitTable = React.createClass({
         return(
           <Column
             label={column + " "+(self.state.sortBy === column ? sortDirArrow : '')}
-            width={WIDTH/keys.length}
+            width={WIDTH/(keys.length)}
             dataKey={column }
+            className="tabCols"
+            flexGrow={2}
+
             headerRenderer={self.renderHeader}      
           />
         )
@@ -243,6 +254,7 @@ var InitTable = React.createClass({
         width={WIDTH}
         height={400}
         headerHeight={50}
+        overflowX={"auto"}
         onRowClick={self.nextPath}>
           {Columns}
         </Table>
@@ -262,7 +274,7 @@ var App = React.createClass({
   
   render: function(){
     var config = ConfigStore.getConfig();
-    console.log(config);
+    //console.log(config);
     return(
       <div id="whoosh">
         <div id="whooshTable">

@@ -121,13 +121,25 @@ $app->get(
     $pageId = (int)$app->request->params("pageId") ?: 0;
     $perPage = (int)$app->request->params("perPage") ?: 10;
     $dataUrl = $dataUrl . "?api_key=".$apiKey;
+    
+    
     //Add parameters to dataUrl
     if( isset($config_json["path"][$pathState]["params"]) ){
       $params = $config_json["path"][$pathState]["params"];
-      $reqParams = urldecode($app->request->params($params));
-      $dataUrl = $dataUrl . "&" . $params . "=" . urlencode($reqParams);
+      $reqParams = "";
+      foreach($params as $param){
+        //echo $param;
+        //echo $app->request->params($param);
+        $reqParams = urldecode($app->request->params($param));
+        //echo $param;
+        if($reqParams)
+          $dataUrl = $dataUrl . "&" . $param . "=" . urlencode($reqParams);
+      }
+      
     }
+    //$dataUrl = $dataUrl . "&" . $param . "=" . urlencode($reqParams);
 
+    //echo $dataUrl;
     //Make the remote request
     $cSession = curl_init();
     try {
