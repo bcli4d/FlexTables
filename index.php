@@ -158,13 +158,13 @@ $app->get(
     $contentLen = count(json_decode($content));
     //echo $contentLen;
     $end = (int)intval($contentLen/$perPage);
-    $data = json_encode(array_slice(json_decode($content), $pageId*$perPage, $perPage));
+    $data = array_slice(json_decode($content), $pageId*$perPage, $perPage);
     
     $payload = array(
-      "pageId"  => $pageId,
-      "perPage" => $perPage,
-      "endPageId"     => $end,
-      "data"    => $data
+      "pageId"    => $pageId,
+      "perPage"   => $perPage,
+      "endPageId" => $end,
+      "data"      => $data
     );
     echo json_encode($payload);
    
