@@ -18,8 +18,8 @@ var HistoryStore = require('./stores/HistoryStore.jsx');
 
 var PAGEID=0;
 var PERPAGE=100;
-
-
+var isColumnResizing;
+var COLUMNWIDTHS={};
 
 var init = function(){
     Actions.init();
@@ -201,6 +201,14 @@ var InitTable = React.createClass({
         </div>
     );
   },
+  _onColumnResizeEndCallback(newColumnWidth, dataKey) {
+    console.log(newColumnWidth);
+    console.log(dataKey);
+    COLUMNWIDTHS[dataKey] = newColumnWidth;
+    console.log(COLUMNWIDTHS);
+    isColumnResizing = false;
+    this.forceUpdate(); // don't do this, use a store and put into this.state!
+  },
 
   render: function(){
 
@@ -226,14 +234,16 @@ var InitTable = React.createClass({
       var nColumns = keys.length;
       var Columns = keys.map(function(column){
         //console.log(self.renderHeader);
+        //COLUMNWIDTHS[column]=WIDTH/(keys.length);
+        console.log(COLUMNWIDTHS[column]);
         return(
           <Column
             label={column + " "+(self.state.sortBy === column ? sortDirArrow : '')}
-            width={WIDTH/(keys.length)}
+            width={COLUMNWIDTHS[column] || WIDTH/(keys.length)}
             dataKey={column }
             className="tabCols"
             flexGrow={2}
-
+            isResizable={true}
             headerRenderer={self.renderHeader}      
           />
         )
@@ -254,6 +264,9 @@ var InitTable = React.createClass({
         width={WIDTH}
         height={400}
         headerHeight={50}
+        isColumnResizing={isColumnResizing}
+        onColumnResizeEndCallback={this._onColumnResizeEndCallback}
+
         overflowX={"auto"}
         onRowClick={self.nextPath}>
           {Columns}
