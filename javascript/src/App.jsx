@@ -65,7 +65,7 @@ var BackButton = React.createClass({
   render: function(){
     if(this.props.pathState){
         return(
-          <div>Back</div>
+          <div> &lt;&lt; </div>
         )
     } else {
       return(
@@ -119,6 +119,15 @@ var InitTable = React.createClass({
   },
   rowGetter: function(i){
     //console.log(this.state.data[i])
+    var maxWidth = {};
+    var row  = this.state.data[i];
+    for(var j in row){
+      var cell = row[j];
+      var len = cell.length;
+      maxWidth[j] = len;
+
+    }
+    //console.log(maxWidth);
     return (this.state.data[i]);
   },
   nextPath: function(event, index){
@@ -157,7 +166,9 @@ var InitTable = React.createClass({
         urlparams = "&" + i + "=" + params[i];
       }
     }
-    Actions.rowClick("index.php/getData?pathState="+ pathState + urlparams);
+    var pagingParams = "&perPage="+PERPAGE +"&pageId="+0;
+  
+    Actions.rowClick("index.php/getData?pathState="+ pathState + urlparams + pagingParams);
 
     this.setState({pathState: pathState});
   },
@@ -202,10 +213,10 @@ var InitTable = React.createClass({
     );
   },
   _onColumnResizeEndCallback(newColumnWidth, dataKey) {
-    console.log(newColumnWidth);
-    console.log(dataKey);
+    //console.log(newColumnWidth);
+    //console.log(dataKey);
     COLUMNWIDTHS[dataKey] = newColumnWidth;
-    console.log(COLUMNWIDTHS);
+    //console.log(COLUMNWIDTHS);
     isColumnResizing = false;
     this.forceUpdate(); // don't do this, use a store and put into this.state!
   },
@@ -235,7 +246,7 @@ var InitTable = React.createClass({
       var Columns = keys.map(function(column){
         //console.log(self.renderHeader);
         //COLUMNWIDTHS[column]=WIDTH/(keys.length);
-        console.log(COLUMNWIDTHS[column]);
+        //console.log(COLUMNWIDTHS[column]);
         return(
           <Column
             label={column + " "+(self.state.sortBy === column ? sortDirArrow : '')}
@@ -251,11 +262,14 @@ var InitTable = React.createClass({
    
       return(
       <div>
-        <h1>{config.title}</h1>
-        <h4>{config["path"][self.state.pathState]["name"]}</h4>   
+        <h1 className="center">{config.title}</h1>
+        <h5 className="center">{config.description || ""}</h5>
+        <h4>        
         <div onClick={self._onBack} className="backLink">  
           <BackButton pathState={self.state.pathState} />
         </div>
+        {config["path"][self.state.pathState]["name"]}</h4>   
+
 
         <Table
         rowHeight={50}

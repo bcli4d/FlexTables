@@ -100,6 +100,7 @@ $app->get(
   function () use($config_json, $app) {
     $config_safe = array(
       "title" => $config_json["title"],
+      "description" => $config_json["description"],
       "path" => $config_json["path"]
     );
     echo json_encode($config_safe);
