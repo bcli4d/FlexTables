@@ -1,5 +1,5 @@
 #whoosh{
-  padding: 40px;
+  padding: 10px;
 }
 
 #whooshTable{
@@ -11,8 +11,26 @@ background-color: #ddd;
 cursor: pointer;
 }
 
+.backLink{
+  display: inline-block;
+  margin: 4px ;
+  //border: 1px solid #ccc;
+  //background: #ccc;
+  //padding: 5px;
+}
 .backLink:hover{
   cursor: pointer;
+ 
+}
+.container{
+  margin: 8px auto;
+  width: 1300px;
+
+}
+
+
+.public_fixedDataTable_header, .public_fixedDataTable_header .public_fixedDataTableCell_main{
+  background: #fff;
 }
 
 .pageNumber{
@@ -23,6 +41,17 @@ cursor: pointer;
   border: 1px solid #ccc;
   margin: 1px;
 }
+h4{
+  margin:0;
+  padding:4px;
+}
+#tableHeading{
+  display: inline-block;
+ }
+.right{
+  float: right;
+
+}
 
 .pageNumber:hover{
   cursor: pointer
@@ -30,4 +59,17 @@ cursor: pointer;
 .activePage{
   background: #333;
   color: #fff;
+}
+.fixedDataTableCellLayout_main, .public_fixedDataTableCell_main{
+  width: auto;
+}
+.tabCols{
+  width: auto;
+}
+.center{
+  text-align: center;
+}
+
+a{
+color: #00bcd4;
 }

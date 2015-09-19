@@ -8,11 +8,27 @@ var jQuery = require('jquery');
 var ColumnGroup = FixedDataTable.ColumnGroup;
 var Reflux = require('reflux')
 
+var mui = require("material-ui");
+var AppBar  = mui.AppBar;
+var RaisedButton = mui.RaisedButton;
+var Toolbar = mui.Toolbar;
+var ToolbarGroup = mui.ToolbarGroup;
+var TextField = mui.TextField;
+var ThemeManager = new mui.Styles.ThemeManager();
+
 var Actions = require('./actions/Actions.jsx')
 
 var ConfigStore = require('./stores/ConfigStore.jsx');
 var DataStore = require('./stores/DataStore.jsx');
 var HistoryStore = require('./stores/HistoryStore.jsx');
+
+var injectTapEventPlugin = require("react-tap-event-plugin");
+
+//Needed for onTouchTap
+//Can go away when react 1.0 release
+//Check this repo:
+//https://github.com/zilverline/react-tap-event-plugin
+injectTapEventPlugin();
 
 
 
@@ -26,12 +42,10 @@ var init = function(){
     var pagingParams = "&perPage="+PERPAGE +"&pageId="+PAGEID;
     var url = "index.php/getData?pathState=0"+pagingParams;
     console.log(url);
-    Actions.rowClick(url);
+    Actions.getDataFromURL(url);
 }
 
-init();
-
-var WIDTH = 1200;
+var WIDTH = 1156;
 
 
 var PaginationPanel = React.createClass({
@@ -65,7 +79,8 @@ var BackButton = React.createClass({
   render: function(){
     if(this.props.pathState){
         return(
-          <div> &lt;&lt; </div>
+         <RaisedButton label="<< Back" />
+ 
         )
     } else {
       return(
@@ -81,20 +96,29 @@ var SortTypes = {
 };
 var InitTable = React.createClass({
   listenables: Actions,
+
   getInitialState: function(){
-    return {pathState: 0, sortDir: null, sortBy: null, pageId:0};
+    pagingParams = "&perPage="+PERPAGE +"&pageId="+0;
+  
+    return {
+      pathState: 0, 
+      sortDir: null, 
+      sortBy: null, 
+      pageId:0, 
+      perPage: PERPAGE,
+      pagingParams: pagingParams
+
+    };
   },
   onData: function(){
     var self = this;
     var data = DataStore.getData();
-    //console.log(data)
-    if(data)
+   if(data)
       self.setState({data: data});
   },
   componentDidMount: function(){
     var self = this;
     self.unsubscribe = DataStore.listen(self.onData)
-
 
   },
   getPage: function(i, index){
@@ -114,7 +138,7 @@ var InitTable = React.createClass({
   
     var reqParams = config[pathState]["params"];
     
-    Actions.rowClick("index.php/getData?pathState="+ pathState+ "&" + reqParams + "="+ params[reqParams]+pagingParams, params);
+    Actions.getDataFromURL("index.php/getData?pathState="+ pathState+ "&" + reqParams + "="+ params[reqParams]+pagingParams, params);
     //self.setState({pageId: i});
   },
   rowGetter: function(i){
@@ -130,32 +154,76 @@ var InitTable = React.createClass({
     //console.log(maxWidth);
     return (this.state.data[i]);
   },
+  onFilter: function(e){
+    var filterString = this.state.filterString || "";
+    var pathState = this.state.pathState || 0;
+    var urlParams = this.state.urlParams || "";
+    var pagingParams = this.state.pagingParams || "" ;
+    var self = this;
+    console.log(pagingParams);
+    var filterParam = "";
+    filterString = e.target.value;
+    if(filterString.length > 0){
+      self.setState({data: {}});
+      filterParam = "&filterBy="+filterString; 
+    }
+    var url = "index.php/getData?pathState="+pathState + urlParams + pagingParams  + filterParam;
+    console.log(url);
+    Actions.getDataFromURL(url);
+  },
   nextPath: function(event, index){
 
     var self  = this; 
-    self.setState({data: null, pageId:0});
-
     var pathState  = self.state.pathState;
+    pathState++;  //Move to next path state
+
     var config = ConfigStore.getConfig()["path"];
 
-    pathState++;
-    params = self.state.data[index];
+    var row = self.state.data[index];
+    var urlParams=  "";
+    //Handle links
+    console.log(row);
+    if(config[pathState].type == "link"){
+      console.log('redirecting');
+      var params = config[pathState].params;
+      var paramCount = 0;  
+      //urlParams = "";
+      for(var i in params){
+        //console.log(params[i].name);
+        if(paramCount == 0)
+          urlParams += params[i].name + "="+row[params[i].value];   
+        else
+          urlParams += "&"+ params[i].name + "="+row[params[i].value];   
+ 
+        paramCount++;
+      }
+      window.location = config[pathState].url+"/?"+urlParams;
+      return;
+    }
+    self.setState({data: null, pageId:0, pagingParams: "", sortBy: "", sortDir: ""}); //Back to page 0 and show loading... panel while fetching data.
+
+
+
+    var pathStateParams = "pathState="+pathState;
+
+    
     var row = self.state.data[index];
     var pagingParams = "&perPage="+PERPAGE +"&pageId="+0;
   
-    var reqParams = config[pathState]["params"];
+    var configParams = config[pathState]["params"];
     var urlParams = "";    
-    for(var i in reqParams){
-      var param = reqParams[i];
+    for(var i in configParams){
+      var param = configParams[i];
       var urlParam = "&" + param+"="+row[param];
       urlParams+=urlParam;
     }
-    
-    //console.log("..........");
-    var url = "index.php/getData?pathState="+ pathState + urlParams + pagingParams;
+    console.log(config[pathState]); 
+
+    var url = "index.php/getData?"+ pathStateParams + urlParams + pagingParams;
     console.log(url);
-    Actions.rowClick(url, params);
-    this.setState({pathState: pathState});
+    Actions.getDataFromURL(url, row);
+    Actions.rowClick(url, row);
+    this.setState({pathState: pathState, urlParams: urlParams, pagingParams: pagingParams});
   },
   _onBack: function(){
     var params = (HistoryStore.popRecent());
@@ -168,14 +236,17 @@ var InitTable = React.createClass({
     }
     var pagingParams = "&perPage="+PERPAGE +"&pageId="+0;
   
-    Actions.rowClick("index.php/getData?pathState="+ pathState + urlparams + pagingParams);
+    Actions.getDataFromURL("index.php/getData?pathState="+ pathState + urlparams + pagingParams);
 
-    this.setState({pathState: pathState});
+    this.setState({pathState: pathState, urlParams: urlparams, pagingParams: pagingParams});
   },
   _sortRowsBy: function(cellDataKey){
+    /*
     var self = this;
     var data = self.state.data;
+    */
     var sortBy = cellDataKey;
+    
     if(sortBy == this.state.sortBy){
         sortDir = this.state.sortDir === SortTypes.ASC ? SortTypes.DESC : SortTypes.ASC;
         
@@ -183,7 +254,7 @@ var InitTable = React.createClass({
         sortDir = SortTypes.DESC;
     }
 
-
+  /*
     data.sort(function(a,b){
         var sortVal = 0;
         if(a[sortBy] > b[sortBy]){
@@ -201,7 +272,13 @@ var InitTable = React.createClass({
         return sortVal;
 
     });
-    this.setState({data: data, sortBy: sortBy, sortDir: sortDir});
+    */
+    var pathState = this.state.pathState || "";
+    var urlParams = this.state.urlParams || "";
+    var pagingParams = this.state.pagingParams || "" ;
+    console.log(pagingParams);
+    Actions.getDataFromURL("index.php/getData?pathState="+pathState + urlParams + pagingParams + "&sortBy="+cellDataKey + "&sortDir="+sortDir);
+    this.setState({sortBy: sortBy, sortDir: sortDir}  );
   },
    
   renderHeader: function(label, cellDataKey){
@@ -261,36 +338,52 @@ var InitTable = React.createClass({
       });
    
       return(
-      <div>
-        <h1 className="center">{config.title}</h1>
-        <h5 className="center">{config.description || ""}</h5>
-        <h4>        
-        <div onClick={self._onBack} className="backLink">  
-          <BackButton pathState={self.state.pathState} />
+      <div className="container">
+        <div className="row">
+        <div>
+          <ToolbarGroup key={0} float="left">
+
+            { self.state.pathState > 0 ? 
+            <div onClick={self._onBack} className="backLink" title="Go Back">  
+                <BackButton pathState={self.state.pathState} />
+            </div>  
+            :
+            <div />
+            }
+            <h4 id="tableHeading">{config["path"][self.state.pathState]["name"]}</h4>   
+
+          </ToolbarGroup>
+          <ToolbarGroup key={1} float="right">
+              <TextField
+                hintText="Filter" 
+                onKeyUp={self.onFilter}/>
+          </ToolbarGroup>
+        </div>     
         </div>
-        {config["path"][self.state.pathState]["name"]}</h4>   
+        <div className="row">   
+          <Table
+          rowHeight={50}
+          rowGetter={self.rowGetter}
+          rowsCount={self.state.data.length}
+          width={WIDTH}
+          height={400}
+          headerHeight={50}
+          isColumnResizing={isColumnResizing}
+          onColumnResizeEndCallback={this._onColumnResizeEndCallback}
 
-
-        <Table
-        rowHeight={50}
-        rowGetter={self.rowGetter}
-        rowsCount={self.state.data.length}
-        width={WIDTH}
-        height={400}
-        headerHeight={50}
-        isColumnResizing={isColumnResizing}
-        onColumnResizeEndCallback={this._onColumnResizeEndCallback}
-
-        overflowX={"auto"}
-        onRowClick={self.nextPath}>
-          {Columns}
-        </Table>
-        <PaginationPanel handlePaging={self.getPage.bind(this)}pagingData={pagingData} />
+          overflowX={"auto"}
+          onRowClick={self.nextPath}>
+            {Columns}
+          </Table>
+          <PaginationPanel handlePaging={self.getPage.bind(this)}pagingData={pagingData} />
+         </div>
       </div>
     )
     } else {
       return(
+        <div className="container">
         <h4>Loading...</h4>
+        </div>
       )
     }
 
@@ -298,17 +391,62 @@ var InitTable = React.createClass({
 });
 
 var App = React.createClass({
-  
-  render: function(){
+  listenables: Actions,
+
+  // Important!
+  childContextTypes: {
+    muiTheme: React.PropTypes.object
+  },
+
+  // Important!
+  getChildContext: function() { 
+    return {
+      muiTheme: ThemeManager.getCurrentTheme()
+    };
+  },
+  getInitialState: function(){
+    return {config: null};
+  },
+  componentDidMount: function(){
+    var self = this;
+    self.unsubscribe = ConfigStore.listen(self.onConfig);
+    init();
+ 
+  },
+  onConfig: function(){
     var config = ConfigStore.getConfig();
+
+
+    this.setState({config: config});
+  },
+  render: function(){
+
+    var config = this.state.config;
+    console.log(config);
     //console.log(config);
+    
+    if(config){
+    console.log(config);
     return(
+    <div> 
+        <AppBar
+          title="Whoosh"
+        />
       <div id="whoosh">
+
         <div id="whooshTable">
+        <h1 className="center">{config.title}</h1>
+        <h5 className="center">{config.description || ""}</h5>
+ 
           <InitTable/>
         </div>
       </div>
+    </div>
     )
+    } else {
+      return <div />
+    }
+
   }
 })
 
