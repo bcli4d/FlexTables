@@ -1,7 +1,8 @@
 var Reflux = require('reflux');
 var Actions = Reflux.createActions([
   "init",
-  "rowClick"
+  "rowClick",
+  "getDataFromURL"
 ]);
 module.exports = Actions;
 

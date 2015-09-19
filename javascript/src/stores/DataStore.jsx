@@ -5,7 +5,7 @@ var _tableData;
 var _pagingData;
 var DataStore = Reflux.createStore({
   init: function(){
-    this.listenTo(Actions.rowClick, this.onRowClick);
+    this.listenTo(Actions.getDataFromURL, this.onRowClick);
   },
   getData: function(){
     return _tableData;
