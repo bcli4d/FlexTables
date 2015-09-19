@@ -8,6 +8,7 @@
  * If you are using Composer, you can skip this step.
  */
 require 'Slim/Slim.php';
+require 'classes/apc.caching.php';
 
 \Slim\Slim::registerAutoloader();
 
@@ -27,7 +28,12 @@ $config = file_get_contents($CONFIG_FILE);
 $config_json = json_decode($config, JSON_UNESCAPED_SLASHES);
 
 
+$oCache = new CacheAPC(); 
 
+
+
+
+// Connection constants
 /**
  * Step 3: Define the Slim application routes
  *
@@ -106,10 +112,109 @@ $app->get(
     echo json_encode($config_safe);
   }
 );
+/*
+function sortData(&$arr, $col, $dir = SORT_ASC) {
+    $sort_col = array();
+    $arr = json_encode($arr);
+    foreach ($arr as $key=> $row) {
+        echo $key;
+        $sort_col[$key] = $row[$col];
+    }
+    
+    array_multisort($sort_col, $dir, $arr);
+}
+*/
+
+function filterData($data, $filterValue){
+  $filtered_data = array();
+  for($i = 0; $i < count($data); $i++){
+    $row = $data[$i];
+    $match = false;
+    foreach($row as $key => $value){
+      //echo $key;
+      if(stripos($value, $filterValue) !== false){
+        $match = true;
+      }
+
+    }
+
+      if($match){
+        $filtered_data[] = $row;
+      }
+  }
+  //print_r($filtered_data);
+  return $filtered_data;
+}
+
+function sortData($data, $key, $desc=false){
+  
+  usort($data, function($a, $b) use($key, $desc){
+    //echo $a->$key; 
+
+
+    $return_val = 1;
+    if ( isSet($a->$key) && isSet($b->$key) ) {
+      if(gettype($a->$key == "string")){
+        //print_r($a->$key);
+        if(isSet($a->$key) && isSet($b->$key)){
+          //echo  strcmp($a->$key, $b->$key);
+          $return_val = strcmp($a->$key, $b->$key);
+        }
+        else
+          $return_val =  1;
+      }
+      else{
+        $return_val = $a->$key > $b->$key ? -1 : 1;
+      }
+    } else {
+      $return_val =  -1;
+    }
+
+    if($desc){
+      return (-1)*$return_val;
+    } else {
+      return $return_val;
+    }
+  });
+  return $data;
+}
+
+function fetchData($dataUrl){
+      $cSession = curl_init();
+      try {
+          $ch = curl_init();
+
+          if (FALSE === $ch)
+              throw new Exception('failed to initialize');
+
+
+          curl_setopt($ch,CURLOPT_URL, $dataUrl);
+          curl_setopt($ch,CURLOPT_RETURNTRANSFER,true);
+          curl_setopt($ch,CURLOPT_HEADER, false);
+
+          $content = curl_exec($ch);
+
+          if (FALSE === $content)
+              throw new Exception(curl_error($ch), curl_errno($ch));
+
+          // ...process $content now
+      } catch(Exception $e) {
+
+          trigger_error(sprintf(
+              'Curl failed with error #%d: %s',
+              $e->getCode(), $e->getMessage()),
+              E_USER_ERROR);
+
+      }
+      //echo gettype($content);
+      $content_json = json_decode($content);
+      return $content_json; 
+
+}
 
 $app->get(
   '/getData',
-  function () use($config_json, $app){
+  function () use($config_json, $app, $oCache){
 
 
     $pathState = (int)$app->request->params("pathState");
@@ -123,7 +228,7 @@ $app->get(
     $perPage = (int)$app->request->params("perPage") ?: 10;
     $dataUrl = $dataUrl . "?api_key=".$apiKey;
     
-    
+    $reqParams=""; 
     //Add parameters to dataUrl
     if( isset($config_json["path"][$pathState]["params"]) ){
       $params = $config_json["path"][$pathState]["params"];
@@ -138,40 +243,53 @@ $app->get(
       }
       
     }
-    //$dataUrl = $dataUrl . "&" . $param . "=" . urlencode($reqParams);
 
-    //echo $dataUrl;
-    //Make the remote request
-    $cSession = curl_init();
-    try {
-        $ch = curl_init();
+$content_json = array();
+   
 
-        if (FALSE === $ch)
-            throw new Exception('failed to initialize');
-
-
-        curl_setopt($ch,CURLOPT_URL, $dataUrl);
-        curl_setopt($ch,CURLOPT_RETURNTRANSFER,true);
-        curl_setopt($ch,CURLOPT_HEADER, false);
-
-        $content = curl_exec($ch);
-
-        if (FALSE === $content)
-            throw new Exception(curl_error($ch), curl_errno($ch));
-
-        // ...process $content now
-    } catch(Exception $e) {
-
-        trigger_error(sprintf(
-            'Curl failed with error #%d: %s',
-            $e->getCode(), $e->getMessage()),
-            E_USER_ERROR);
-
+    if($oCache->bEnabled){
+      $cached_data = $oCache->getData($dataUrl);
+      if($cached_data){
+        $content_json = $cached_data;
+      } else {
+        $content_json  = fetchData($dataUrl);
+        $oCache->setData($dataUrl, $content_json);
+      } 
+    } else {
+      $content_json = fetchData($dataUrl);
+      $oCache->setData($dataUrl, $content_json);
     }
-    $contentLen = count(json_decode($content));
-    //echo $contentLen;
+
+
+
+    //Sorting stuff
+    $sortBy = $app->request->params("sortBy");
+    if(isset($sortBy)){
+      //echo $sortBy;
+      $sortDir = $app->request->params("sortDir");
+      $desc = false;
+      if(isSet($sortDir)){
+        if($sortDir == "DESC")
+          $desc = true;
+        else
+          $desc = false;
+      } 
+      $sorted_data = (sortData($content_json, $sortBy, $desc));
+       
+    } else {
+      $sorted_data = $content_json;
+    }
+
+    $filterBy = $app->request->params("filterBy");
+    if(isSet($filterBy)){
+      //echo $filterBy;
+      
+     $sorted_data =  filterData($sorted_data, $filterBy);
+    }
+    $contentLen = count($sorted_data);
+ 
     $end = (int)intval($contentLen/$perPage);
-    $data = array_slice(json_decode($content), $pageId*$perPage, $perPage);
+    $data = array_slice($sorted_data, $pageId*$perPage, $perPage);
     
     $payload = array(
       "pageId"    => $pageId,
