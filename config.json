@@ -1,0 +1,32 @@
+{
+  "apiKey" : "",
+  "title": "TCIA",
+  "description": "Lorem ipsum dolor....",
+  "path":[
+    {
+      "name": "Collections",
+      "dataUrl": "http://localhost:3001/collections",
+      "metadataUrl": "https://services.cancerimagingarchive.net/services/v3/TCIA/query/getCollectionValues/metadata"
+    },
+    {
+      "name": "Patients",
+      "dataUrl": "http://localhost:3001/patients",
+      "params": ["Collection"] 
+    },
+    {
+      "name": "PatientStudy",
+      "dataUrl": "http://localhost:3001/patientStudy",
+      "params": ["PatientID", "Collection"]
+    },
+
+    {
+      "name": "Link",
+      "type": "link",
+      "params": [{
+        "name": "xyz",
+        "value": "StudyInstanceUID"
+      }],
+      "url": "http://example.com"
+    }
+  ]
+}
