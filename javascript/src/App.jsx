@@ -14,6 +14,7 @@ var RaisedButton = mui.RaisedButton;
 var Toolbar = mui.Toolbar;
 var ToolbarGroup = mui.ToolbarGroup;
 var TextField = mui.TextField;
+var FlatButton = mui.FlatButton;
 var ThemeManager = new mui.Styles.ThemeManager();
 
 var Actions = require('./actions/Actions.jsx')
@@ -113,8 +114,15 @@ var InitTable = React.createClass({
   onData: function(){
     var self = this;
     var data = DataStore.getData();
-   if(data)
-      self.setState({data: data});
+    console.log(data);
+    
+    if(data && !data.error){
+      console.log("ddfd");
+      self.setState({data: data, error: false});
+
+    }
+    else
+      self.setState({error: true});
   },
   componentDidMount: function(){
     var self = this;
@@ -235,7 +243,7 @@ var InitTable = React.createClass({
       }
     }
     var pagingParams = "&perPage="+PERPAGE +"&pageId="+0;
-  
+    this.setState({data: null});
     Actions.getDataFromURL("index.php/getData?pathState="+ pathState + urlparams + pagingParams);
 
     this.setState({pathState: pathState, urlParams: urlparams, pagingParams: pagingParams});
@@ -308,10 +316,14 @@ var InitTable = React.createClass({
     if (this.state.sortDir !== null){
       sortDirArrow = this.state.sortDir === SortTypes.DESC ? ' ↓' : ' ↑';
     }
-    
-
+    console.log(self.state.error); 
+    if(self.state.error){
+      return(
+        <h4>Error fetching data</h4>
+      )
+    }
      
-    if(self.state.data){
+    if(self.state.data && !self.state.error){
       var pagingData = DataStore.getPagingData();
       //console.log(pagingData);
       var data = self.state.data;
@@ -339,6 +351,12 @@ var InitTable = React.createClass({
    
       return(
       <div className="container">
+        {
+          self.state.error ?
+            <h4>Error</h4>
+          :
+            <div />
+        }
         <div className="row">
         <div>
           <ToolbarGroup key={0} float="left">
@@ -430,12 +448,14 @@ var App = React.createClass({
     return(
     <div> 
         <AppBar
-          title="Whoosh"
+          title={config.title}
+          iconElementLeft={<div /> 
+          }
+        iconElementRight={<FlatButton label="Help" />}
         />
       <div id="whoosh">
 
         <div id="whooshTable">
-        <h1 className="center">{config.title}</h1>
         <h5 className="center">{config.description || ""}</h5>
  
           <InitTable/>

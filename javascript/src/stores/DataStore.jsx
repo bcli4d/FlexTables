@@ -15,16 +15,20 @@ var DataStore = Reflux.createStore({
 //    console.log(url)
 
     jQuery.get(url, function(data){
-        //console.log(data)
-      data = JSON.parse(data);
-      _tableData = data["data"];
-      //_tableData = JSON.parse(data);
-      //console.log(_tableData);
-      _pagingData = {
-        "pageId": data["pageId"],
-        "perPage": data["perPage"],
-        "endPageId": data["endPageId"]
-      };
+        console.log(data)
+        if(data == "Error"){
+          _tableData = {"error": "error"};
+
+        } else {
+          data = JSON.parse(data);
+          _tableData = data["data"];
+          _pagingData = {
+            "pageId": data["pageId"],
+            "perPage": data["perPage"],
+            "endPageId": data["endPageId"]
+
+          };
+        }
       self.trigger(_tableData);
     })
     //Trigger update
