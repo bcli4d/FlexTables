@@ -112,18 +112,6 @@ $app->get(
     echo json_encode($config_safe);
   }
 );
-/*
-function sortData(&$arr, $col, $dir = SORT_ASC) {
-    $sort_col = array();
-    $arr = json_encode($arr);
-    foreach ($arr as $key=> $row) {
-        echo $key;
-        $sort_col[$key] = $row[$col];
-    }
-    
-    array_multisort($sort_col, $dir, $arr);
-}
-*/
 
 function filterData($data, $filterValue){
   $filtered_data = array();
@@ -142,7 +130,6 @@ function filterData($data, $filterValue){
         $filtered_data[] = $row;
       }
   }
-  //print_r($filtered_data);
   return $filtered_data;
 }
 
@@ -155,9 +142,7 @@ function sortData($data, $key, $desc=false){
     $return_val = 1;
     if ( isSet($a->$key) && isSet($b->$key) ) {
       if(gettype($a->$key == "string")){
-        //print_r($a->$key);
         if(isSet($a->$key) && isSet($b->$key)){
-          //echo  strcmp($a->$key, $b->$key);
           $return_val = strcmp($a->$key, $b->$key);
         }
         else
@@ -193,20 +178,18 @@ function fetchData($dataUrl){
           curl_setopt($ch,CURLOPT_HEADER, false);
 
           $content = curl_exec($ch);
-
           if (FALSE === $content)
               throw new Exception(curl_error($ch), curl_errno($ch));
 
           // ...process $content now
       } catch(Exception $e) {
 
-          trigger_error(sprintf(
-              'Curl failed with error #%d: %s',
-              $e->getCode(), $e->getMessage()),
-              E_USER_ERROR);
+          $content = "Error";
 
+          return $content;
+         
       }
-      //echo gettype($content);
+
       $content_json = json_decode($content);
       return $content_json; 
 
@@ -216,7 +199,7 @@ $app->get(
   '/getData',
   function () use($config_json, $app, $oCache){
 
-
+    //apc_clear_cache();
     $pathState = (int)$app->request->params("pathState");
 
 
@@ -234,17 +217,17 @@ $app->get(
       $params = $config_json["path"][$pathState]["params"];
       $reqParams = "";
       foreach($params as $param){
-        //echo $param;
-        //echo $app->request->params($param);
+
+
         $reqParams = urldecode($app->request->params($param));
-        //echo $param;
+
         if($reqParams)
           $dataUrl = $dataUrl . "&" . $param . "=" . urlencode($reqParams);
       }
       
     }
 
-$content_json = array();
+    $content_json = array();
    
 
     if($oCache->bEnabled){
@@ -257,48 +240,51 @@ $content_json = array();
       } 
     } else {
       $content_json = fetchData($dataUrl);
-      $oCache->setData($dataUrl, $content_json);
+      if($content_json != "Error")
+        $oCache->setData($dataUrl, $content_json);
     }
 
+    if($content_json != "Error"){
 
+      //Sorting stuff
+      $sortBy = $app->request->params("sortBy");
+      if(isset($sortBy)){
 
-    //Sorting stuff
-    $sortBy = $app->request->params("sortBy");
-    if(isset($sortBy)){
-      //echo $sortBy;
-      $sortDir = $app->request->params("sortDir");
-      $desc = false;
-      if(isSet($sortDir)){
-        if($sortDir == "DESC")
-          $desc = true;
-        else
-          $desc = false;
-      } 
-      $sorted_data = (sortData($content_json, $sortBy, $desc));
-       
-    } else {
-      $sorted_data = $content_json;
-    }
+        $sortDir = $app->request->params("sortDir");
+        $desc = false;
+        if(isSet($sortDir)){
+          if($sortDir == "DESC")
+            $desc = true;
+          else
+            $desc = false;
+        } 
+        $sorted_data = (sortData($content_json, $sortBy, $desc));
+         
+      } else {
+        $sorted_data = $content_json;
+      }
 
-    $filterBy = $app->request->params("filterBy");
-    if(isSet($filterBy)){
-      //echo $filterBy;
-      
-     $sorted_data =  filterData($sorted_data, $filterBy);
-    }
-    $contentLen = count($sorted_data);
- 
-    $end = (int)intval($contentLen/$perPage);
-    $data = array_slice($sorted_data, $pageId*$perPage, $perPage);
-    
-    $payload = array(
-      "pageId"    => $pageId,
-      "perPage"   => $perPage,
-      "endPageId" => $end,
-      "data"      => $data
-    );
-    echo json_encode($payload);
+      $filterBy = $app->request->params("filterBy");
+      if(isSet($filterBy)){
+        //echo $filterBy;
+        
+       $sorted_data =  filterData($sorted_data, $filterBy);
+      }
+      $contentLen = count($sorted_data);
    
+      $end = (int)intval($contentLen/$perPage);
+      $data = array_slice($sorted_data, $pageId*$perPage, $perPage);
+      
+      $payload = array(
+        "pageId"    => $pageId,
+        "perPage"   => $perPage,
+        "endPageId" => $end,
+        "data"      => $data
+      );
+      echo json_encode($payload);
+    } else {
+      echo $content_json;
+    } 
     //echo $data;
   }
 );
