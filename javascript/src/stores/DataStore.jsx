@@ -15,7 +15,7 @@ var DataStore = Reflux.createStore({
 //    console.log(url)
 
     jQuery.get(url, function(data){
-        console.log(data)
+//        console.log(data)
         if(data == "Error"){
           _tableData = {"error": "error"};
 

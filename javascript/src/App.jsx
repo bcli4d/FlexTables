@@ -15,6 +15,8 @@ var Toolbar = mui.Toolbar;
 var ToolbarGroup = mui.ToolbarGroup;
 var TextField = mui.TextField;
 var FlatButton = mui.FlatButton;
+var CircularProgress = mui.CircularProgress;
+var IconButton = mui.IconButton;
 var ThemeManager = new mui.Styles.ThemeManager();
 
 var Actions = require('./actions/Actions.jsx')
@@ -95,6 +97,31 @@ var SortTypes = {
   ASC: 'ASC',
   DESC: 'DESC',
 };
+
+var ErrorPanel = React.createClass({
+
+    render: function(){
+        console.log(IconButton);
+        return(
+            <div className="center" id="errorMsg">
+                               
+                Error Fetching data :(
+            </div>
+        )
+    }
+})
+
+var TabHeaderPanel = React.createClass({
+    
+    render: function(){
+
+    return(
+        <div />
+    )
+    }
+
+});
+
 var InitTable = React.createClass({
   listenables: Actions,
 
@@ -114,10 +141,10 @@ var InitTable = React.createClass({
   onData: function(){
     var self = this;
     var data = DataStore.getData();
-    console.log(data);
+    //console.log(data);
     
     if(data && !data.error){
-      console.log("ddfd");
+      //console.log("ddfd");
       self.setState({data: data, error: false});
 
     }
@@ -136,7 +163,7 @@ var InitTable = React.createClass({
     self.setState({data: null});
     params = "";
     var history = HistoryStore.getHistory();
-    console.log(history);
+    //console.log(history);
    
     params = history[history.length - 1];
     if(!params){
@@ -145,8 +172,8 @@ var InitTable = React.createClass({
     var pagingParams = "&perPage="+PERPAGE +"&pageId="+i;
   
     var reqParams = config[pathState]["params"];
-    
-    Actions.getDataFromURL("index.php/getData?pathState="+ pathState+ "&" + reqParams + "="+ params[reqParams]+pagingParams, params);
+    var url = "index.php/getData?pathState="+ pathState+ "&" + reqParams + "="+ params[reqParams]+pagingParams, params; 
+    Actions.getDataFromURL(url);
     //self.setState({pageId: i});
   },
   rowGetter: function(i){
@@ -168,13 +195,15 @@ var InitTable = React.createClass({
     var urlParams = this.state.urlParams || "";
     var pagingParams = this.state.pagingParams || "" ;
     var self = this;
-    console.log(pagingParams);
+    //console.log(pagingParams);
     var filterParam = "";
     filterString = e.target.value;
     if(filterString.length > 0){
       self.setState({data: {}});
       filterParam = "&filterBy="+filterString; 
     }
+    self.setState({data: null});    
+    
     var url = "index.php/getData?pathState="+pathState + urlParams + pagingParams  + filterParam;
     console.log(url);
     Actions.getDataFromURL(url);
@@ -190,9 +219,9 @@ var InitTable = React.createClass({
     var row = self.state.data[index];
     var urlParams=  "";
     //Handle links
-    console.log(row);
+    //console.log(row);
     if(config[pathState].type == "link"){
-      console.log('redirecting');
+      //console.log('redirecting');
       var params = config[pathState].params;
       var paramCount = 0;  
       //urlParams = "";
@@ -225,7 +254,7 @@ var InitTable = React.createClass({
       var urlParam = "&" + param+"="+row[param];
       urlParams+=urlParam;
     }
-    console.log(config[pathState]); 
+    //console.log(config[pathState]); 
 
     var url = "index.php/getData?"+ pathStateParams + urlParams + pagingParams;
     console.log(url);
@@ -244,7 +273,8 @@ var InitTable = React.createClass({
     }
     var pagingParams = "&perPage="+PERPAGE +"&pageId="+0;
     this.setState({data: null});
-    Actions.getDataFromURL("index.php/getData?pathState="+ pathState + urlparams + pagingParams);
+    var url = "index.php/getData?pathState="+ pathState + urlparams + pagingParams;
+    Actions.getDataFromURL(url);
 
     this.setState({pathState: pathState, urlParams: urlparams, pagingParams: pagingParams});
   },
@@ -285,7 +315,10 @@ var InitTable = React.createClass({
     var urlParams = this.state.urlParams || "";
     var pagingParams = this.state.pagingParams || "" ;
     console.log(pagingParams);
-    Actions.getDataFromURL("index.php/getData?pathState="+pathState + urlParams + pagingParams + "&sortBy="+cellDataKey + "&sortDir="+sortDir);
+    this.setState({data: null});
+    var url = "index.php/getData?pathState="+pathState + urlParams + pagingParams + "&sortBy="+cellDataKey + "&sortDir="+sortDir;
+    console.log(url);
+    Actions.getDataFromURL(url);
     this.setState({sortBy: sortBy, sortDir: sortDir}  );
   },
    
@@ -316,13 +349,15 @@ var InitTable = React.createClass({
     if (this.state.sortDir !== null){
       sortDirArrow = this.state.sortDir === SortTypes.DESC ? ' ↓' : ' ↑';
     }
-    console.log(self.state.error); 
+    //console.log(self.state.error); 
     if(self.state.error){
       return(
-        <h4>Error fetching data</h4>
+        <div className="center">
+            <ErrorPanel />
+        </div>  
       )
     }
-     
+    
     if(self.state.data && !self.state.error){
       var pagingData = DataStore.getPagingData();
       //console.log(pagingData);
@@ -333,9 +368,6 @@ var InitTable = React.createClass({
       }
       var nColumns = keys.length;
       var Columns = keys.map(function(column){
-        //console.log(self.renderHeader);
-        //COLUMNWIDTHS[column]=WIDTH/(keys.length);
-        //console.log(COLUMNWIDTHS[column]);
         return(
           <Column
             label={column + " "+(self.state.sortBy === column ? sortDirArrow : '')}
@@ -348,17 +380,12 @@ var InitTable = React.createClass({
           />
         )
       });
-   
-      return(
+    }
+    console.log(self.state.data);
+    return(
+
       <div className="container">
-        {
-          self.state.error ?
-            <h4>Error</h4>
-          :
-            <div />
-        }
-        <div className="row">
-        <div>
+            <div>
           <ToolbarGroup key={0} float="left">
 
             { self.state.pathState > 0 ? 
@@ -376,35 +403,35 @@ var InitTable = React.createClass({
                 hintText="Filter" 
                 onKeyUp={self.onFilter}/>
           </ToolbarGroup>
-        </div>     
-        </div>
-        <div className="row">   
-          <Table
-          rowHeight={50}
-          rowGetter={self.rowGetter}
-          rowsCount={self.state.data.length}
-          width={WIDTH}
-          height={400}
-          headerHeight={50}
-          isColumnResizing={isColumnResizing}
-          onColumnResizeEndCallback={this._onColumnResizeEndCallback}
+            </div>
 
-          overflowX={"auto"}
-          onRowClick={self.nextPath}>
-            {Columns}
-          </Table>
-          <PaginationPanel handlePaging={self.getPage.bind(this)}pagingData={pagingData} />
-         </div>
+        {
+        self.state.data ? 
+            <div className="row">   
+              <Table
+              rowHeight={50}
+              rowGetter={self.rowGetter}
+              rowsCount={self.state.data.length}
+              width={WIDTH}
+              height={400}
+              headerHeight={50}
+              isColumnResizing={isColumnResizing}
+              onColumnResizeEndCallback={this._onColumnResizeEndCallback}
+              overflowX={"auto"}
+              onRowClick={self.nextPath}>
+                {Columns}
+              </Table>
+              <PaginationPanel handlePaging={self.getPage.bind(this)}pagingData={pagingData} />
+            </div>
+        :
+             <div className="row center" id="loading">        
+                <CircularProgress mode="indeterminate" size={1.5} />
+             </div>
+         }        
       </div>
-    )
-    } else {
-      return(
-        <div className="container">
-        <h4>Loading...</h4>
-        </div>
-      )
-    }
 
+    )
+    
   }
 });
 
@@ -440,7 +467,7 @@ var App = React.createClass({
   render: function(){
 
     var config = this.state.config;
-    console.log(config);
+    //console.log(config);
     //console.log(config);
     
     if(config){
