@@ -32,7 +32,13 @@ cursor: pointer;
 .public_fixedDataTable_header, .public_fixedDataTable_header .public_fixedDataTableCell_main{
   background: #fff;
 }
-
+.public_fixedDataTable_header:hover, .public_fixedDataTable_header:hover .public_fixedDataTableCell_main{
+  background: #fff;
+  cursor: auto;
+}
+a:hover{
+  cursor: pointer
+}
 .pageNumber{
   display: inline-block;
   padding: 2px 4px;
