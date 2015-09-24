@@ -6,7 +6,7 @@ Event driven tables rendering data from REST APIs.
 ## Installation
 **Requirements**
 
-``sudo apt-get install php-apc``
+* Install php-apc package. For ubuntu: ``sudo apt-get install php-apc``
 
 **Deployment**
 
