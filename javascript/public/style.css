@@ -74,8 +74,16 @@ h4{
 }
 .center{
   text-align: center;
+  margin: 0 auto;
 }
 
+#errorMsg{
+    margin: 30px;
+}
+
+#loading{
+    margin-top: 150px;
+}
 a{
 color: #00bcd4;
 }
