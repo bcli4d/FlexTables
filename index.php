@@ -165,6 +165,7 @@ function sortData($data, $key, $desc=false){
 }
 
 function fetchData($dataUrl){
+
       $cSession = curl_init();
       try {
           $ch = curl_init();
@@ -178,18 +179,18 @@ function fetchData($dataUrl){
           curl_setopt($ch,CURLOPT_HEADER, false);
 
           $content = curl_exec($ch);
+
           if (FALSE === $content)
               throw new Exception(curl_error($ch), curl_errno($ch));
-
+      
           // ...process $content now
       } catch(Exception $e) {
-
+    
           $content = "Error";
-
           return $content;
          
       }
-
+     
       $content_json = json_decode($content);
       return $content_json; 
 
@@ -198,8 +199,8 @@ function fetchData($dataUrl){
 $app->get(
   '/getData',
   function () use($config_json, $app, $oCache){
-
-    //apc_clear_cache();
+    
+    apc_clear_cache();
     $pathState = (int)$app->request->params("pathState");
 
 
@@ -228,8 +229,7 @@ $app->get(
     }
 
     $content_json = array();
-   
-
+    
     if($oCache->bEnabled){
       $cached_data = $oCache->getData($dataUrl);
       if($cached_data){
@@ -240,6 +240,7 @@ $app->get(
       } 
     } else {
       $content_json = fetchData($dataUrl);
+      
       if($content_json != "Error")
         $oCache->setData($dataUrl, $content_json);
     }
