@@ -6,10 +6,12 @@ Event driven tables rendering data from REST APIs.
 ## Installation
 **Requirements**
 
-``sudo apt-get install php-apc``
+* Install php-apc package. For ubuntu: ``sudo apt-get install php-apc``
 
 **Deployment**
-Add the project to your apache ``www`` directory.
+
+* Add the project to your apache ``www`` directory.
+* Run ```http://localhost/flextables``` from your browser
 
 ## Usage
 The tool uses ``config.json`` file which resides in the root of the application to render tables.
