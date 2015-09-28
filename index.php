@@ -47,6 +47,14 @@ $oCache = new CacheAPC();
 $app->get(
     '/',
     function () {
+        session_start();
+
+        $has_session = session_status();
+
+        if(!($has_session == PHP_SESSION_ACTIVE))
+            apc_clear_cache();
+
+
         $template = <<<EOT
 <!DOCTYPE html>
     <html>
@@ -199,8 +207,7 @@ function fetchData($dataUrl){
 $app->get(
   '/getData',
   function () use($config_json, $app, $oCache){
-    
-    apc_clear_cache();
+    session_start();
     $pathState = (int)$app->request->params("pathState");
 
 
