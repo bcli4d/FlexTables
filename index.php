@@ -60,7 +60,7 @@ $app->get(
     <html>
         <head>
             <meta charset="utf-8"/>
-            <title>Whoosh</title>
+            <title>Flex Tables</title>
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/css/bootstrap.css"/>
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fixed-data-table/0.4.6/fixed-data-table.css" />
             <link rel="stylesheet" href="javascript/public/style.css" />
