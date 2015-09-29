@@ -2,6 +2,10 @@
   padding: 10px;
 }
 
+.description{
+    color: #aaa;
+}
+
 #whooshTable{
   margin-top: 20px;
 }

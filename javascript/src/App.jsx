@@ -11,6 +11,7 @@ var Reflux = require('reflux')
 
 var mui = require("material-ui");
 var AppBar  = mui.AppBar;
+//var Paper = mui.Paper;
 var RaisedButton = mui.RaisedButton;
 var Toolbar = mui.Toolbar;
 var ToolbarGroup = mui.ToolbarGroup;
@@ -238,7 +239,7 @@ var InitTable = React.createClass({
       window.location = config[pathState].url+"/?"+urlParams;
       return;
     }
-    self.setState({data: null, pageId:0, pagingParams: "", sortBy: "", sortDir: ""}); //Back to page 0 and show loading... panel while fetching data.
+    self.setState({data: null, pageId:0, pagingParams: "", sortBy: "", sortDir: "", filterString: ""}); //Back to page 0 and show loading... panel while fetching data.
 
 
 
@@ -402,7 +403,8 @@ var InitTable = React.createClass({
           <ToolbarGroup key={1} float="right">
               <TextField
                 hintText="Filter" 
-                onKeyUp={self.onFilter}/>
+                onChange={self.onFilter}
+                />
           </ToolbarGroup>
             </div>
 
@@ -484,8 +486,10 @@ var App = React.createClass({
       <div id="whoosh">
 
         <div id="whooshTable">
-        <h5 className="center">{config.description || ""}</h5>
- 
+            <div className="center description">
+                <p>         {config.description || ""}</p>
+            </div>
+
           <InitTable/>
         </div>
       </div>
