@@ -49,10 +49,10 @@ $app->get(
     function () {
         session_start();
 
-        $has_session = session_status();
+        //$has_session = session_status();
 
-        if(!($has_session == PHP_SESSION_ACTIVE))
-            apc_clear_cache();
+        //if(!($has_session == PHP_SESSION_ACTIVE))
+        apc_clear_cache();
 
 
         $template = <<<EOT
