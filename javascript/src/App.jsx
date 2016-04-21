@@ -9,6 +9,8 @@ var jQuery = require('jquery');
 var ColumnGroup = FixedDataTable.ColumnGroup;
 var Reflux = require('reflux')
 
+var ReactDOM = require('react-dom');
+
 var mui = require("material-ui");
 var AppBar  = mui.AppBar;
 //var Paper = mui.Paper;
@@ -20,7 +22,10 @@ var FlatButton = mui.FlatButton;
 var CircularProgress = mui.CircularProgress;
 var IconButton = mui.IconButton;
 var ThemeManager = new mui.Styles.ThemeManager();
-
+var Colors  = mui.Styles.Colors;
+//ThemeManager.
+//
+//console.log(ThemeManager.getMuiTheme())
 var Actions = require('./actions/Actions.jsx')
 
 var ConfigStore = require('./stores/ConfigStore.jsx');
@@ -66,7 +71,7 @@ var PaginationPanel = React.createClass({
 
       }
       return(
-        <div className={className} onClick={function(){
+        <div className={className} key={i} onClick={function(){
           self.props.handlePaging(i);
         }}>{i}</div>
       )
@@ -103,7 +108,7 @@ var SortTypes = {
 var ErrorPanel = React.createClass({
 
     render: function(){
-        console.log(IconButton);
+        //console.log(IconButton);
         return(
             <div className="center" id="errorMsg">
                                
@@ -207,7 +212,7 @@ var InitTable = React.createClass({
     self.setState({data: null});    
     
     var url = "index.php/getData?pathState="+pathState + urlParams + pagingParams  + filterParam;
-    console.log(url);
+    //console.log(url);
     Actions.getDataFromURL(url);
   },
   nextPath: function(event, index){
@@ -259,7 +264,7 @@ var InitTable = React.createClass({
     //console.log(config[pathState]); 
 
     var url = "index.php/getData?"+ pathStateParams + urlParams + pagingParams;
-    console.log(url);
+    //console.log(url);
     Actions.getDataFromURL(url, row);
     Actions.rowClick(url, row);
     this.setState({pathState: pathState, urlParams: urlParams, pagingParams: pagingParams});
@@ -316,10 +321,10 @@ var InitTable = React.createClass({
     var pathState = this.state.pathState || "";
     var urlParams = this.state.urlParams || "";
     var pagingParams = this.state.pagingParams || "" ;
-    console.log(pagingParams);
+    //console.log(pagingParams);
     this.setState({data: null});
     var url = "index.php/getData?pathState="+pathState + urlParams + pagingParams + "&sortBy="+cellDataKey + "&sortDir="+sortDir;
-    console.log(url);
+    //console.log(url);
     Actions.getDataFromURL(url);
     this.setState({sortBy: sortBy, sortDir: sortDir}  );
   },
@@ -369,16 +374,21 @@ var InitTable = React.createClass({
         keys.push(i)
       }
       var nColumns = keys.length;
+      var id = 0;
       var Columns = keys.map(function(column){
+        //console.log(column);
+        //console.log(column.length);
+        id++;
         return(
           <Column
             label={column + " "+(self.state.sortBy === column ? sortDirArrow : '')}
-            width={COLUMNWIDTHS[column] || WIDTH/(keys.length)}
+            width={COLUMNWIDTHS[column] || column.length*10 + 40}
             dataKey={column }
             className="tabCols"
             flexGrow={2}
             isResizable={true}
-            headerRenderer={self.renderHeader}      
+            headerRenderer={self.renderHeader}     
+            key={id}
           />
         )
       });
@@ -448,6 +458,11 @@ var App = React.createClass({
 
   // Important!
   getChildContext: function() { 
+        console.log(this.state.muiTheme);
+        ThemeManager.setPalette({
+            primary1Color: "#1976D2"
+        });     
+        console.log(ThemeManager.getCurrentTheme());
     return {
       muiTheme: ThemeManager.getCurrentTheme()
     };
@@ -474,7 +489,7 @@ var App = React.createClass({
     //console.log(config);
     
     if(config){
-    console.log(config);
+    //console.log(config);
     return(
     <div> 
         <AppBar
@@ -502,7 +517,7 @@ var App = React.createClass({
   }
 })
 
-React.render(
+ReactDOM.render(
   <App />,
   document.getElementById('app')
 );

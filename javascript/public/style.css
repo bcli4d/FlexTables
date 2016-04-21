@@ -39,6 +39,7 @@ cursor: pointer;
 .public_fixedDataTable_header:hover, .public_fixedDataTable_header:hover .public_fixedDataTableCell_main{
   background: #fff;
   cursor: auto;
+
 }
 a:hover{
   cursor: pointer
@@ -72,6 +73,7 @@ h4{
 }
 .fixedDataTableCellLayout_main, .public_fixedDataTableCell_main{
   width: auto;
+font-size: 14px;
 }
 .tabCols{
   width: auto;
@@ -89,5 +91,5 @@ h4{
     margin-top: 150px;
 }
 a{
-color: #00bcd4;
+//color: #00bcd4;
 }
