@@ -52,7 +52,7 @@ $app->get(
         //$has_session = session_status();
 
         //if(!($has_session == PHP_SESSION_ACTIVE))
-        apc_clear_cache();
+        //apc_clear_cache();
 
 
         $template = <<<EOT
@@ -236,7 +236,7 @@ $app->get(
     }
 
     $content_json = array();
-    
+   	/* 
     if($oCache->bEnabled){
       $cached_data = $oCache->getData($dataUrl);
       if($cached_data){
@@ -251,7 +251,8 @@ $app->get(
       if($content_json != "Error")
         $oCache->setData($dataUrl, $content_json);
     }
-
+	*/
+    $content_json = fetchData($dataUrl);
     if($content_json != "Error"){
 
       //Sorting stuff
