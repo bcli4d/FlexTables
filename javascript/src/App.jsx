@@ -241,7 +241,7 @@ var InitTable = React.createClass({
  
         paramCount++;
       }
-      window.location = config[pathState].url+"/?"+urlParams;
+      window.location = config[pathState].url+"?"+urlParams;
       return;
     }
     self.setState({data: null, pageId:0, pagingParams: "", sortBy: "", sortDir: "", filterString: ""}); //Back to page 0 and show loading... panel while fetching data.
