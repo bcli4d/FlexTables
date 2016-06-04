@@ -49,10 +49,7 @@ var COLUMNWIDTHS={};
 
 var init = function(){
     Actions.init();
-    var pagingParams = "&perPage="+PERPAGE +"&pageId="+PAGEID;
-    var url = "index.php/getData?pathState=0"+pagingParams;
-    console.log(url);
-    Actions.getDataFromURL(url);
+
 }
 
 var WIDTH = 1156;
@@ -478,7 +475,10 @@ var App = React.createClass({
   },
   onConfig: function(){
     var config = ConfigStore.getConfig();
-
+    var pagingParams = "&perPage="+PERPAGE +"&pageId="+PAGEID;
+    var url = "index.php/getData?pathState=0"+pagingParams;
+    console.log(url);
+    Actions.getDataFromURL(url);
 
     this.setState({config: config});
   },
