@@ -25,8 +25,7 @@ Following is an example:
   "path":[
     {
       "name": "Collections",
-      "dataUrl": "http://localhost:3001/collections",
-      "metadataUrl": "https://services.cancerimagingarchive.net/services/v3/TCIA/query/getCollectionValues/metadata"
+      "dataUrl": "http://localhost:3001/collections"
     },
     {
       "name": "Patients",
