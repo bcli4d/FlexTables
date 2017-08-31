@@ -60,7 +60,7 @@ var PaginationPanel = React.createClass({
     var self = this;
     var pageId = this.props.pagingData.pageId;
     var endPageId = this.props.pagingData.endPageId;
-    var pagesArray = Array.apply(null, Array(endPageId)).map(Number.prototype.valueOf,0);
+    var pagesArray = Array.apply(null, Array(endPageId+1)).map(Number.prototype.valueOf,0);
     var Pages = pagesArray.map(function(o,i){
       var className="pageNumber";
       if(pageId == i){
